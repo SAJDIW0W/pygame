@@ -1,3 +1,109 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Game Constants
+WIDTH, HEIGHT = 800, 600
+PLAYER_SPEED = 5
+ZOMBIE_SPEED = 2
+BULLET_SPEED = 7
+FPS = 60
+
+# Colors
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
+
+# Screen Setup
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Zombie Shooter")
+
+# Load Assets
+player_img = pygame.image.load("player.png")
+zombie_img = pygame.image.load("zombie.png")
+
+# Classes
+class Player:
+    def __init__(self):
+        self.image = player_img
+        self.rect = self.image.get_rect(center=(WIDTH//2, HEIGHT//2))
+        self.health = 100
+    
+    def move(self, keys):
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= PLAYER_SPEED
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += PLAYER_SPEED
+        if keys[pygame.K_UP]:
+            self.rect.y -= PLAYER_SPEED
+        if keys[pygame.K_DOWN]:
+            self.rect.y += PLAYER_SPEED
+
+    def attack(self, zombies, weapon):
+        for zombie in zombies:
+            if self.rect.colliderect(zombie.rect):
+                if weapon == "punch":
+                    zombie.health -= 10
+                elif weapon == "pan":
+                    zombie.health -= 20
+
+    def draw(self):
+        screen.blit(self.image, self.rect)
+
+class Zombie:
+    def __init__(self):
+        self.image = zombie_img
+        self.rect = self.image.get_rect(x=random.randint(0, WIDTH), y=random.randint(0, HEIGHT))
+        self.health = 50
+    
+    def move_towards(self, player):
+        if self.rect.x < player.rect.x:
+            self.rect.x += ZOMBIE_SPEED
+        elif self.rect.x > player.rect.x:
+            self.rect.x -= ZOMBIE_SPEED
+        if self.rect.y < player.rect.y:
+            self.rect.y += ZOMBIE_SPEED
+        elif self.rect.y > player.rect.y:
+            self.rect.y -= ZOMBIE_SPEED
+
+    def draw(self):
+        screen.blit(self.image, self.rect)
+
+# Game Loop
+player = Player()
+zombies = [Zombie() for _ in range(5)]
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    screen.fill(WHITE)
+    keys = pygame.key.get_pressed()
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.attack(zombies, "punch")
+            elif event.key == pygame.K_p:
+                player.attack(zombies, "pan")
+    
+    player.move(keys)
+    player.draw()
+    
+    for zombie in zombies:
+        zombie.move_towards(player)
+        zombie.draw()
+        if zombie.health <= 0:
+            zombies.remove(zombie)
+    
+    pygame.display.update()
+    clock.tick(FPS)
+
+pygame.quit()
 .. TUTORIAL:Tom Chance's Making Games Tutorial
 
 .. include:: common.txt
